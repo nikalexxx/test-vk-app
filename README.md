@@ -1,4 +1,4 @@
-Развёрнутый сайт - kozodoi-club-hack.surge.sh
+Развёрнутый сайт - nikolaichev-vk-test-app.surge.sh
 
 Для локального развёртывания в корне необходимо выполнить npm i, затем npm start
 
