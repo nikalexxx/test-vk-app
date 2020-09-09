@@ -1,14 +1,17 @@
+import './place.css';
+
 import React, { useMemo } from 'react';
+
 import { Link } from 'react-router-dom';
 import accounting from 'accounting';
+import edit from '../img/edit.svg';
+
 // import PropTypes from 'prop-types';
 
-import edit from '../img/edit.svg';
-import './place.css';
 
 
 const Place = ({ item, order, onIncrementPosition, onDecrementPosition, area }) => {
-  const price = useMemo(() => {
+  const [price, priceNumber] = useMemo(() => {
     const foodIds = new Set((item.foods || []).map(item => item.id));
 
     const result = Object.values(order)
@@ -23,7 +26,7 @@ const Place = ({ item, order, onIncrementPosition, onDecrementPosition, area }) 
         return result + parseInt(price) * parseInt(count);
       }, 0);
 
-    return accounting.formatNumber(result, 0, ' ');
+    return [accounting.formatNumber(result, 0, ' '), result];
   }, [ order, item ]);
 
   return (
@@ -101,9 +104,10 @@ const Place = ({ item, order, onIncrementPosition, onDecrementPosition, area }) 
         )))}
       </ul>
       <footer className="Place__footer">
+        {priceNumber > 0 &&
         <Link to={`/basket/${area.id}/${item.id}`} className="Place__order">
           Оформить заказ ({price})
-        </Link>
+        </Link>}
       </footer>
     </div>
   );

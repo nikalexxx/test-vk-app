@@ -1,21 +1,45 @@
-import React, { useMemo, useState } from 'react';
-import { withRouter, Link } from 'react-router-dom';
-import accounting from 'accounting';
-
-import Checkbox from './Checkbox';
-
-import edit from '../img/edit.svg';
 import './place.css';
 
+import { Link, withRouter } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+
+import Checkbox from './Checkbox';
+import accounting from 'accounting';
+import edit from '../img/edit.svg';
+
+const isErrorTime = timeString => !/^\d{2}:\d{2}$/.test(timeString);
+
+const getSavedBasket = () => (JSON.parse(localStorage.getItem('basket') || 'null') || {});
+
+const setParam = (name, value, set, key) => {
+  set(value);
+  const current = getSavedBasket();
+  if (!(key in current)) {
+    current[key] = {};
+  }
+  current[key][name] = value;
+  localStorage.setItem('basket', JSON.stringify(current));
+}
 
 const Basket = ({ match: { params: { areaId, itemId }}, foodAreas, order }) => {
-  const [ faster, setFaster ] = useState(true);
-  const [ time, setTime ] = useState('');
-  const [ selfService, setSelfService ] = useState(false);
+  const key = `${areaId}.${itemId}`;
+  const savedBasket = getSavedBasket();
+  const basket = savedBasket[key] || {};
+  const [ faster, setFaster ] = useState('faster' in basket ? basket.faster : true);
+  const [ time, setTime ] = useState('time' in basket ? basket.time : '');
+  const [ selfService, setSelfService ] = useState('selfService' in basket ? basket.selfService : false);
+
+
+  const params = {
+    setFaster: value => setParam('faster', value, setFaster, key),
+    setTime: value => setParam('time', value, setTime, key),
+    setSelfService: value => setParam('selfService', value, setSelfService, key)
+  };
+
   const area = foodAreas.filter(area => area.id === areaId)[0];
   const item = area.items.filter(item => item.id === itemId)[0];
 
-  const [ price, products ] = useMemo(() => {
+  const [ price, products, priceNumber ] = useMemo(() => {
     const foodIds = new Set((item.foods || []).map(item => item.id));
 
     const products = Object.values(order)
@@ -31,7 +55,7 @@ const Basket = ({ match: { params: { areaId, itemId }}, foodAreas, order }) => {
         return result + parseInt(item.price) * parseInt(count);
       }, 0);
 
-    return [ accounting.formatNumber(result, 0, ' '), products ];
+    return [ accounting.formatNumber(result, 0, ' '), products, result ];
   }, [ order, item ]);
 
   return (
@@ -111,10 +135,10 @@ const Basket = ({ match: { params: { areaId, itemId }}, foodAreas, order }) => {
             checked={faster} 
             onToggle={() => {
               if (faster) {
-                setFaster(false);
+                params.setFaster(false);
               } else {
-                setTime('');
-                setFaster(true);
+                params.setTime('');
+                params.setFaster(true);
               }
             }}
           />
@@ -123,33 +147,39 @@ const Basket = ({ match: { params: { areaId, itemId }}, foodAreas, order }) => {
           <span>Назначить</span>
           <input
             value={time}
+            type="time"
             onFocus={() => {
-              setFaster(false);
+              params.setFaster(false);
             }}
             onChange={event => {
-              setFaster(false);
-              setTime(event.target.value);
+              params.setFaster(false);
+              const value = event.target.value.trim();
+              params.setTime(value);
             }}
             onBlur={() => {
               if (time) {
-                setFaster(false);
+                params.setFaster(false);
               }
             }}
           />
+          {isErrorTime(time) && !faster &&
+          <div style={{color: 'red', fontSize: '.8em'}}>Введите время в формате hh:mm</div>
+          }
         </div>
         <div className="Place__choice-item">
           <h3>С собой</h3>
-          <Checkbox checked={selfService} onToggle={() => setSelfService(!selfService)} />
+          <Checkbox checked={selfService} onToggle={() => params.setSelfService(!selfService)} />
         </div>
         <div className="Place__choice-item">
           <h3>На месте</h3>
-          <Checkbox checked={!selfService} onToggle={() => setSelfService(!setSelfService)} />
+          <Checkbox checked={!selfService} onToggle={() => params.setSelfService(!selfService)} />
         </div>
       </div>
       <footer className="Place__footer">
+        {priceNumber > 0 && (!isErrorTime(time) || faster) &&
         <Link to={`/order/${area.id}/${item.id}`} className="Place__order">
           Оплатить {price}
-        </Link>
+        </Link>}
       </footer>
     </div>
   );

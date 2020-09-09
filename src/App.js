@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import './panels/App.css';
 
-import Home from './panels/Home';
-import Place from './panels/Place';
+import React, { useState } from 'react';
+import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
+
 import Basket from './panels/Basket';
+import FourTowar from './img/4.png';
+import Home from './panels/Home';
+import OneTowar from './img/1.png';
 import Order from './panels/Order';
 import Orders from './panels/Orders';
-
-import './panels/App.css';
-import kfc from './img/kfc.png';
+import Place from './panels/Place';
+import ThreeTowar from './img/3.png';
+import TwoTowar from './img/2.png';
 import burger from './img/burger.png';
+import kfc from './img/kfc.png';
 import mcdac from './img/mcdac.png';
 import sub from './img/sub.png';
-import OneTowar from './img/1.png';
-import TwoTowar from './img/2.png';
-import ThreeTowar from './img/3.png';
-import FourTowar from './img/4.png';
-
 
 const FOOD_AREAS = [{
 	id: 'pizikiva-gallery',
@@ -33,7 +32,7 @@ const FOOD_AREAS = [{
 			name: 'Классик',
 			price: 150,
 		}, {
-			id: 'bigmac',
+			id: 'fries',
 			image: OneTowar,
 			name: 'Картофель фри',
 			price: 50,
@@ -165,7 +164,7 @@ const App = () => {
 						setFinishedOrder={({ itemId }) => {
 							const nextStatuses = {...orderStatuses};
 
-							nextStatuses[itemId] = 'DONE';
+							nextStatuses[itemId] = 'CANCELED';
 
 							setOrderStatuses(nextStatuses);
 							localStorage.setItem('orderStatuses', JSON.stringify(nextStatuses));
